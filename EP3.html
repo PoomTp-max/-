@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เกมเส้นทางประวัติศาสตร์</title>
+    <style>
+        /* ตั้งค่าพื้นฐาน */
+        body 
+        {
+            font-family: 'Georgia', serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #e6f2f3;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* กรอบข้อความไฮไลต์สีเหลือง */
+        .highlight-box {
+            background-color: #ffeb3b;
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        #map-container {
+            position: relative;
+            width: 600px;
+            height: 400px;
+            background-color: #c3dce3;
+            border: 4px solid #2a6478;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .location {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #005f73;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .location:hover {
+            transform: scale(1.1); /* ขยายขนาดเมื่อวางเมาส์ */
+        }
+
+        /* จัดตำแหน่งกรอบข้อมูลและกรอบภาพ */
+        .content-container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            margin-top: 20px;
+        }
+
+        #info-box {
+            flex: 1;
+            padding: 20px;
+            border: 2px solid #2a6478;
+            border-radius: 8px;
+            background-color: #f7fbfc;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            color: #4a4a4a;
+            position: relative;
+        }
+
+        #image-box {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #ffeb3b;
+            background-color: #fff;
+            border-radius: 8px;
+            height: 100%;
+            min-height: 300px;
+        }
+
+        #image-box img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+        }
+
+        .section {
+            margin-top: 15px;
+        }
+
+        .section h3 {
+            color: #2a6478;
+            font-size: 1.1em;
+            margin-bottom: 5px;
+            text-decoration: underline;
+        }
+
+        /* ข้อความภายใน info-box */
+        p {
+            line-height: 1.6;
+            text-align: justify;
+        }
+
+        /* ปุ่มปิดกล่องข้อมูล */
+        #close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #2a6478;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            padding: 5px 10px;
+            font-size: 0.9em;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        #close-btn:hover {
+            background-color: #529ca0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- กรอบข้อความไฮไลต์สีเหลือง -->
+    <div class="highlight-box">เส้นทางประวัติศาสตร์</div>
+    <p>คลิกจุดบนแผนที่เพื่อเรียนรู้เกี่ยวกับกรมหลวงชุมพรเขตรอุดมศักดิ์</p>
+
+    <div id="map-container">
+        <!-- ตำแหน่งจุดต่าง ๆ บนแผนที่ -->
+        <div class="location" id="location1" onclick="showInfo('location1')" style="top: 50px; left: 80px;"></div>
+        <div class="location" id="location2" onclick="showInfo('location2')" style="top: 150px; left: 200px;"></div>
+        <div class="location" id="location3" onclick="showInfo('location3')" style="top: 250px; left: 320px;"></div>
+    </div>
+
+    <div class="content-container">
+        <!-- กรอบข้อมูล -->
+        <div id="info-box">
+            <button id="close-btn" onclick="closeInfo()">ปิด</button>
+            <h2 id="location-title"></h2>
+            <div class="section">
+                <h3>ความเป็นมา</h3>
+                <p id="location-history"></p>
+            </div>
+            <div class="section">
+                <h3>การพัฒนากองทัพเรือ</h3>
+                <p id="location-contribution"></p>
+            </div>
+            <div class="section">
+                <h3>ผลงานสำคัญ</h3>
+                <p id="location-achievements"></p>
+            </div>
+            <div class="section">
+                <h3>สถานที่สำคัญที่เกี่ยวข้อง</h3>
+                <p id="location-places"></p>
+            </div>
+        </div>
+
+        <!-- กรอบภาพ -->
+        <div id="image-box">
+            <img id="location-image" src="" alt="Location Image">
+        </div>
+    </div>
+
+    <script>
+        // ข้อมูลของสถานที่ต่าง ๆ เกี่ยวกับกรมหลวงชุมพร พร้อมกับ URL ของภาพ
+        const locations = {
+            location1: {
+                title: "จุดที่ 1 - กรมหลวงชุมพรเขตรอุดมศักดิ์",
+                history: "พระเจ้าบรมวงศ์เธอ กรมหลวงชุมพรเขตรอุดมศักดิ์ หรือที่รู้จักในฐานะพระบิดาแห่งกองทัพเรือไทย ประสูติเมื่อวันที่ 19 ธันวาคม พ.ศ. 2423 ทรงเป็นโอรสของรัชกาลที่ 5 และเจ้าจอมมารดาโหมด",
+                contribution: "พระองค์ทรงมีบทบาทสำคัญในการพัฒนากองทัพเรือไทย โดยการนำเทคโนโลยีและวิทยาการทหารจากอังกฤษมาพัฒนากองทัพเรือไทยให้มีมาตรฐานสูงขึ้น",
+                achievements: "ผลงานสำคัญของพระองค์รวมถึงการจัดตั้งโรงเรียนนายเรือ และการพัฒนาระบบการฝึกอบรมทหารเรือที่ทันสมัย ทำให้กองทัพเรือไทยมีความแข็งแกร่งและเป็นมาตรฐาน",
+                places: "สถานที่สำคัญที่เกี่ยวข้องกับพระองค์ ได้แก่ ศาลกรมหลวงชุมพรที่หาดทรายรี ซึ่งประชาชนนิยมไปกราบไหว้และรำลึกถึงพระองค์",
+                image: "https://files.oaiusercontent.com/file-GhgzgSrEixpcbPYVgqKSr3Hb?se=2024-11-03T15%3A55%3A37Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D604800%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3De63c72f2-6758-4d48-99b4-a1145d6d8500.webp&sig=pWokx86%2B7Y%2BhPTkPKrMYdCWFrgvfPsn0A5i1wMbS20E%3D"
+            },
+            location2: {
+                title: "จุดที่ 2 - สมญานาม 'พระบิดาแห่งกองทัพเรือไทย'",
+                history: "กรมหลวงชุมพรได้รับสมญานามนี้เนื่องจากพระองค์ทรงเป็นผู้วางรากฐานการฝึกทหารเรือและพัฒนากองทัพให้มีความทันสมัย ซึ่งมีความสำคัญต่อความปลอดภัยของประเทศ",
+                contribution: "พระองค์ทรงทุ่มเททั้งชีวิตในการพัฒนากองทัพเรือ รวมถึงการศึกษาและการนำเข้าเทคโนโลยีจากต่างประเทศ เพื่อให้กองทัพเรือไทยสามารถปกป้องประเทศได้อย่างมีประสิทธิภาพ",
+                achievements: "นอกจากการก่อตั้งโรงเรียนนายเรือ พระองค์ยังมีบทบาทในการจัดทำแผนยุทธศาสตร์และการรบทางน้ำ ซึ่งเป็นรากฐานที่ทำให้กองทัพเรือไทยมีความเข้มแข็งมาจนถึงปัจจุบัน",
+                places: "อนุสรณ์สถานในอ่าวสัตหีบ เป็นอีกสถานที่หนึ่งที่สร้างขึ้นเพื่อระลึกถึงคุณูปการของพระองค์",
+                image: "https://www.silpa-mag.com/wp-content/uploads/2016/12/02.jpg"
+            },
+            location3: {
+                title: "จุดที่ 3 - ผลงานและคุณูปการ",
+                history: "กรมหลวงชุมพรเขตรอุดมศักดิ์ทรงอุทิศพระองค์ในการทำให้กองทัพเรือไทยมีมาตรฐานเทียบเท่ากับต่างชาติ ทรงจัดทำระบบการฝึกทหารและนำเข้าอาวุธยุทโธปกรณ์ใหม่ๆ",
+                contribution: "พระองค์มีความมุ่งมั่นในการพัฒนากองทัพเรือให้ทันสมัย และทรงวางรากฐานด้านยุทธศาสตร์การป้องกันประเทศผ่านการปฏิบัติหน้าที่ต่าง ๆ",
+                achievements: "การฝึกสอนในโรงเรียนนายเรือ และการจัดการด้านยุทธศาสตร์ที่มีประสิทธิภาพ เป็นผลงานที่สำคัญของพระองค์",
+                places: "ศาลกรมหลวงชุมพรและอนุสรณ์สถานที่ต่าง ๆ เป็นที่เคารพสักการะจากประชาชน",
+                image: "https://i.pinimg.com/736x/ea/39/27/ea3927fbdd6459e48f6d3006bfe855c7.jpg"
+            }
+        };
+
+        function showInfo(locationId) {
+            const location = locations[locationId];
+            document.getElementById('location-title').innerText = location.title;
+            document.getElementById('location-history').innerText = location.history;
+            document.getElementById('location-contribution').innerText = location.contribution;
+            document.getElementById('location-achievements').innerText = location.achievements;
+            document.getElementById('location-places').innerText = location.places;
+            document.getElementById('location-image').src = location.image;
+            document.getElementById('info-box').style.display = 'block';
+        }
+
+        function closeInfo() {
+            document.getElementById('info-box').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
